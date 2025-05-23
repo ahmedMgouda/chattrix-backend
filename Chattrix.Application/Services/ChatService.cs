@@ -2,6 +2,7 @@ using Chattrix.Application.Interfaces;
 using Chattrix.Core.Interfaces;
 using Chattrix.Core.Models;
 using System.Linq;
+using System.IO;
 
 namespace Chattrix.Application.Services;
 
@@ -10,6 +11,11 @@ public class ChatService : IChatService
     private readonly IMessageRepository _messages;
     private readonly IConversationRepository _conversations;
     private readonly IUserService _users;
+    private const int MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB default limit
+    private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".txt"
+    };
 
     public ChatService(IMessageRepository messages, IConversationRepository conversations, IUserService users)
     {
@@ -25,7 +31,7 @@ public class ChatService : IChatService
         return conversation.Id;
     }
 
-    public async Task SendMessageAsync(Guid conversationId, string sender, string content, string? fileName = null, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(Guid conversationId, string sender, string content, IReadOnlyList<ChatAttachment>? files = null, CancellationToken cancellationToken = default)
     {
         var conversation = await _conversations.GetByIdAsync(conversationId, cancellationToken);
         if (conversation is null) return;
@@ -33,7 +39,32 @@ public class ChatService : IChatService
         var recipient = conversation.User1 == sender ? conversation.User2 : conversation.User1;
         if (await _users.IsBlockedAsync(sender, recipient, cancellationToken)) return;
 
-        var message = new ChatMessage(Guid.NewGuid(), conversationId, sender, recipient, content, DateTime.UtcNow, fileName);
+        if (files is not null)
+        {
+            foreach (var file in files)
+            {
+                var ext = file.Extension;
+                if (!AllowedExtensions.Contains(ext))
+                {
+                    throw new InvalidOperationException($"Files of type '{ext}' are not allowed.");
+                }
+                byte[] bytes;
+                try
+                {
+                    bytes = Convert.FromBase64String(file.Data);
+                }
+                catch (FormatException)
+                {
+                    throw new InvalidOperationException($"Attachment '{file.FileName}' is not valid base64.");
+                }
+                if (bytes.Length > MaxFileSizeBytes)
+                {
+                    throw new InvalidOperationException($"File '{file.FileName}' exceeds allowed size of {MaxFileSizeBytes} bytes.");
+                }
+            }
+        }
+
+        var message = new ChatMessage(Guid.NewGuid(), conversationId, sender, recipient, content, DateTime.UtcNow, files);
         await _messages.AddAsync(message, cancellationToken);
     }
 
@@ -81,9 +112,9 @@ public class ChatService : IChatService
         return messages.Where(m => m.Content.Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
-    public async Task<IReadOnlyList<string>> GetFilesAsync(Guid conversationId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ChatAttachment>> GetFilesAsync(Guid conversationId, CancellationToken cancellationToken = default)
     {
         var messages = await _messages.GetByConversationAsync(conversationId, cancellationToken);
-        return messages.Where(m => m.FileName is not null).Select(m => m.FileName!).ToList();
+        return messages.SelectMany(m => m.Files ?? Array.Empty<ChatAttachment>()).ToList();
     }
 }
