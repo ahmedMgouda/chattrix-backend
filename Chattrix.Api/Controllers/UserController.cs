@@ -1,4 +1,5 @@
 using Chattrix.Application.Interfaces;
+using Chattrix.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chattrix.Api.Controllers;
@@ -15,14 +16,14 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("status")] 
-    public async Task<IActionResult> SetStatus(string user, string status, CancellationToken cancellationToken)
+    public async Task<IActionResult> SetStatus(string user, UserStatus status, CancellationToken cancellationToken)
     {
         await _users.SetStatusAsync(user, status, cancellationToken);
         return NoContent();
     }
 
     [HttpGet("status/{user}")]
-    public Task<string?> GetStatus(string user, CancellationToken cancellationToken)
+    public Task<UserStatus> GetStatus(string user, CancellationToken cancellationToken)
     {
         return _users.GetStatusAsync(user, cancellationToken);
     }

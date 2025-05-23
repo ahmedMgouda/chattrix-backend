@@ -6,7 +6,7 @@ namespace Chattrix.Core.Models;
 public class UserProfile
 {
     public string User { get; }
-    public string Status { get; set; } = string.Empty;
+    public UserStatus Status { get; set; } = UserStatus.Available;
     public HashSet<string> BlockedUsers { get; } = new();
 
     public UserProfile(string user)
