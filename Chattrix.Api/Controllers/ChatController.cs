@@ -28,10 +28,12 @@ public class ChatController : ControllerBase
         return _chatService.GetMessagesAsync(conversationId, cancellationToken);
     }
 
+    public record SendMessageRequest(string Sender, string Content, IReadOnlyList<ChatAttachment>? Files);
+
     [HttpPost("{conversationId}")]
-    public async Task<IActionResult> Post(Guid conversationId, string sender, string content, string? fileName, CancellationToken cancellationToken)
+    public async Task<IActionResult> Post(Guid conversationId, [FromBody] SendMessageRequest request, CancellationToken cancellationToken)
     {
-        await _chatService.SendMessageAsync(conversationId, sender, content, fileName, cancellationToken);
+        await _chatService.SendMessageAsync(conversationId, request.Sender, request.Content, request.Files, cancellationToken);
         return Ok();
     }
 
@@ -42,7 +44,7 @@ public class ChatController : ControllerBase
     }
 
     [HttpGet("{conversationId}/files")]
-    public Task<IReadOnlyList<string>> Files(Guid conversationId, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<ChatAttachment>> Files(Guid conversationId, CancellationToken cancellationToken)
     {
         return _chatService.GetFilesAsync(conversationId, cancellationToken);
     }

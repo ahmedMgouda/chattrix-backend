@@ -9,7 +9,7 @@ namespace Chattrix.Core.Models;
 /// <param name="Recipient">Receiving user.</param>
 /// <param name="Content">Text content.</param>
 /// <param name="Timestamp">Creation time.</param>
-/// <param name="FileName">Optional file attachment name.</param>
+/// <param name="Files">Optional file attachments.</param>
 /// <param name="IsDelivered">Whether the message has been delivered.</param>
 /// <param name="IsRead">Whether the message has been read by the recipient.</param>
 /// <param name="IsEdited">Indicates whether the message has been edited.</param>
@@ -20,7 +20,7 @@ public record ChatMessage(
     string Recipient,
     string Content,
     DateTime Timestamp,
-    string? FileName = null,
+    IReadOnlyList<ChatAttachment>? Files = null,
     bool IsDelivered = false,
     bool IsRead = false,
     bool IsEdited = false);
