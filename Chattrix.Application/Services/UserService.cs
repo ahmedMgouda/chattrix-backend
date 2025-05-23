@@ -13,14 +13,14 @@ public class UserService : IUserService
         _repository = repository;
     }
 
-    public async Task SetStatusAsync(string user, string status, CancellationToken cancellationToken = default)
+    public async Task SetStatusAsync(string user, UserStatus status, CancellationToken cancellationToken = default)
     {
         var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
         profile.Status = status;
         await _repository.UpdateAsync(profile, cancellationToken);
     }
 
-    public async Task<string?> GetStatusAsync(string user, CancellationToken cancellationToken = default)
+    public async Task<UserStatus> GetStatusAsync(string user, CancellationToken cancellationToken = default)
     {
         var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
         return profile.Status;
