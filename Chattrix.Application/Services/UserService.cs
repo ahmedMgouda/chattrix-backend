@@ -1,0 +1,48 @@
+using Chattrix.Application.Interfaces;
+using Chattrix.Core.Interfaces;
+using Chattrix.Core.Models;
+
+namespace Chattrix.Application.Services;
+
+public class UserService : IUserService
+{
+    private readonly IUserRepository _repository;
+
+    public UserService(IUserRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task SetStatusAsync(string user, string status, CancellationToken cancellationToken = default)
+    {
+        var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
+        profile.Status = status;
+        await _repository.UpdateAsync(profile, cancellationToken);
+    }
+
+    public async Task<string?> GetStatusAsync(string user, CancellationToken cancellationToken = default)
+    {
+        var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
+        return profile.Status;
+    }
+
+    public async Task BlockAsync(string user, string blockedUser, CancellationToken cancellationToken = default)
+    {
+        var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
+        profile.BlockedUsers.Add(blockedUser);
+        await _repository.UpdateAsync(profile, cancellationToken);
+    }
+
+    public async Task UnblockAsync(string user, string blockedUser, CancellationToken cancellationToken = default)
+    {
+        var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
+        profile.BlockedUsers.Remove(blockedUser);
+        await _repository.UpdateAsync(profile, cancellationToken);
+    }
+
+    public async Task<bool> IsBlockedAsync(string user, string otherUser, CancellationToken cancellationToken = default)
+    {
+        var profile = await _repository.GetOrCreateAsync(otherUser, cancellationToken);
+        return profile.BlockedUsers.Contains(user);
+    }
+}
