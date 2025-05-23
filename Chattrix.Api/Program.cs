@@ -27,6 +27,7 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<UserHub>("/hubs/user");
 
 app.Run();
 
