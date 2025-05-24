@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { environment } from '../environments/environment';
 
 export interface ChatAttachment {
@@ -24,6 +25,32 @@ export interface ChatMessage {
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private baseUrl = `${environment.apiUrl}/chat`;
+  private hubUrl = environment.apiUrl.replace('/api', '') + '/hubs/chat';
+  private connection?: HubConnection;
+
+  async connect(): Promise<void> {
+    if (!this.connection) {
+      this.connection = new HubConnectionBuilder()
+        .withUrl(this.hubUrl)
+        .withAutomaticReconnect()
+        .build();
+    }
+    if (this.connection.state === 'Disconnected') {
+      await this.connection.start();
+    }
+  }
+
+  onMessage(handler: (conversationId: string, sender: string, content: string, files: ChatAttachment[] | null) => void): void {
+    this.connection?.on('ReceiveMessage', handler);
+  }
+
+  joinConversation(conversationId: string): Promise<void> {
+    return this.connection?.invoke('JoinConversation', conversationId) ?? Promise.resolve();
+  }
+
+  sendMessageViaHub(conversationId: string, sender: string, content: string, files?: ChatAttachment[]): Promise<void> {
+    return this.connection?.invoke('SendMessage', conversationId, sender, content, files ?? null) ?? Promise.resolve();
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -37,7 +64,7 @@ export class ChatService {
     return this.http.get<ChatMessage[]>(`${this.baseUrl}/${conversationId}`);
   }
 
-  sendMessage(conversationId: string, sender: string, content: string, files?: ChatAttachment[]): Observable<void> {
+  sendMessageHttp(conversationId: string, sender: string, content: string, files?: ChatAttachment[]): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/${conversationId}`, {
       sender,
       content,
