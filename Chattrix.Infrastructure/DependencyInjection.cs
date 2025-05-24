@@ -1,8 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Chattrix.Core.Interfaces;
 using Chattrix.Infrastructure.Repositories;
-using Chattrix.Application.Interfaces;
 using Chattrix.Infrastructure.Services;
+using Chattrix.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Chattrix.Application.Interfaces;
 
 namespace Chattrix.Infrastructure;
 
@@ -10,9 +12,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
-        services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
-        services.AddSingleton<IConversationRepository, InMemoryConversationRepository>();
-        services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+        services.AddDbContext<ChatDbContext>(options => options.UseInMemoryDatabase("ChatDb"));
+        services.AddScoped<IMessageRepository, DbMessageRepository>();
+        services.AddScoped<IConversationRepository, DbConversationRepository>();
+        services.AddScoped<IUserRepository, DbUserRepository>();
         services.AddSingleton<IEmailService, ConsoleEmailService>();
         return services;
     }
