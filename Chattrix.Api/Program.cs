@@ -3,6 +3,7 @@ using Chattrix.Infrastructure;
 using Chattrix.Core.Events;
 using Chattrix.Api.Hubs;
 using Serilog;
+using Chattrix.Api.Events;
 using Hangfire;
 using Hangfire.MemoryStorage;
 
@@ -14,6 +15,8 @@ builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddHangfire(config => config.UseMemoryStorage());
 builder.Services.AddHangfireServer();
+builder.Services.AddScoped<IDomainEventHandler<ChatMessageSentEvent>, BroadcastChatMessageHandler>();
+builder.Services.AddScoped<IDomainEventHandler<UserStatusChangedEvent>, BroadcastUserStatusChangedHandler>();
 
 builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
