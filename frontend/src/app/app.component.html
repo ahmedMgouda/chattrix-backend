@@ -18,8 +18,23 @@
   <div class="chat-window">
     <div *ngFor="let message of messages">
       <strong>{{ message.sender }}:</strong> {{ message.content }}
+      <div *ngIf="message.files?.length">
+        <div *ngFor="let file of message.files">
+          <a
+            [href]="'data:application/octet-stream;base64,' + file.data"
+            [download]="file.fileName"
+            >{{ file.fileName }}</a
+          >
+        </div>
+      </div>
     </div>
   </div>
+
+  <input type="file" multiple (change)="onFileSelected($event)" />
+  <ul *ngIf="attachments.length">
+    <li *ngFor="let file of attachments">{{ file.fileName }}</li>
+  </ul>
+
   <input [(ngModel)]="newMessage" placeholder="Type a message..." />
   <button (click)="send()">Send</button>
 </div>
