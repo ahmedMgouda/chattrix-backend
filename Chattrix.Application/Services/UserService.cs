@@ -1,6 +1,7 @@
 using Chattrix.Application.Interfaces;
 using Chattrix.Core.Interfaces;
 using Chattrix.Core.Models;
+using Chattrix.Core.Events;
 
 namespace Chattrix.Application.Services;
 
@@ -18,6 +19,7 @@ public class UserService : IUserService
         var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
         profile.Status = status;
         await _repository.UpdateAsync(profile, cancellationToken);
+        await DomainEvents.RaiseAsync(new UserStatusChangedEvent(user, status), cancellationToken);
     }
 
     public async Task<UserStatus> GetStatusAsync(string user, CancellationToken cancellationToken = default)

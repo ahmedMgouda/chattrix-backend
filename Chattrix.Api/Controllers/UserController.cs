@@ -1,8 +1,6 @@
 using Chattrix.Application.Interfaces;
 using Chattrix.Core.Models;
-using Chattrix.Api.Hubs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Chattrix.Api.Controllers;
 
@@ -11,19 +9,16 @@ namespace Chattrix.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _users;
-    private readonly IHubContext<UserHub> _hub;
 
-    public UserController(IUserService users, IHubContext<UserHub> hub)
+    public UserController(IUserService users)
     {
         _users = users;
-        _hub = hub;
     }
 
     [HttpPost("status")] 
     public async Task<IActionResult> SetStatus(string user, UserStatus status, CancellationToken cancellationToken)
     {
         await _users.SetStatusAsync(user, status, cancellationToken);
-        await _hub.Clients.All.SendAsync("StatusChanged", user, status, cancellationToken);
         return NoContent();
     }
 
