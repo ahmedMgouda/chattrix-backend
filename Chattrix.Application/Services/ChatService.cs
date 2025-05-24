@@ -1,6 +1,7 @@
 using Chattrix.Application.Interfaces;
 using Chattrix.Core.Interfaces;
 using Chattrix.Core.Models;
+using Hangfire;
 using System.Linq;
 using System.IO;
 
@@ -11,17 +12,26 @@ public class ChatService : IChatService
     private readonly IMessageRepository _messages;
     private readonly IConversationRepository _conversations;
     private readonly IUserService _users;
+    private readonly IEmailService _emails;
+    private readonly IBackgroundJobClient _jobs;
     private const int MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB default limit
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".txt"
     };
 
-    public ChatService(IMessageRepository messages, IConversationRepository conversations, IUserService users)
+    public ChatService(
+        IMessageRepository messages,
+        IConversationRepository conversations,
+        IUserService users,
+        IEmailService emails,
+        IBackgroundJobClient jobs)
     {
         _messages = messages;
         _conversations = conversations;
         _users = users;
+        _emails = emails;
+        _jobs = jobs;
     }
 
     public async Task<Guid> StartConversationAsync(string user1, string user2, string topic, CancellationToken cancellationToken = default)
@@ -66,6 +76,12 @@ public class ChatService : IChatService
 
         var message = new ChatMessage(Guid.NewGuid(), conversationId, sender, recipient, content, DateTime.UtcNow, files);
         await _messages.AddAsync(message, cancellationToken);
+
+        var status = await _users.GetStatusAsync(recipient, cancellationToken);
+        if (status == UserStatus.Offline)
+        {
+            _jobs.Enqueue<IEmailService>(e => e.SendEmailAsync(recipient, $"New message from {sender}", content, CancellationToken.None));
+        }
     }
 
     public async Task MarkDeliveredAsync(Guid id, CancellationToken cancellationToken = default)
