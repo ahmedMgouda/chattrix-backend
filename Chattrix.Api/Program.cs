@@ -1,5 +1,6 @@
 using Chattrix.Application;
 using Chattrix.Infrastructure;
+using Chattrix.Core.Events;
 using Chattrix.Api.Hubs;
 using Serilog;
 using Hangfire;
@@ -33,6 +34,8 @@ app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<UserHub>("/hubs/user");
 app.UseHangfireDashboard();
+
+DomainEvents.SetServiceProvider(app.Services);
 
 app.Run();
 
