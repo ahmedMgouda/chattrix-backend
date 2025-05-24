@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'chattrix-frontend--no-routing' title`, () => {
+  it(`should have the 'Chat Frontend' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('chattrix-frontend--no-routing');
+    expect(app.title).toEqual('Chat Frontend');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, chattrix-frontend--no-routing');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Chat Frontend');
   });
 });
