@@ -20,7 +20,7 @@ public class ChatService : IChatService
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".txt",
-        ".mp3", ".wav", ".ogg", ".m4a"
+        ".mp3", ".wav", ".ogg", ".m4a", ".webm"
     };
 
     public ChatService(

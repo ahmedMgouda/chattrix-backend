@@ -20,11 +20,10 @@
       <strong>{{ message.sender }}:</strong> {{ message.content }}
       <div *ngIf="message.files?.length">
         <div *ngFor="let file of message.files">
-          <a
-            [href]="'data:application/octet-stream;base64,' + file.data"
-            [download]="file.fileName"
-            >{{ file.fileName }}</a
-          >
+          <audio *ngIf="isAudio(file)" controls [src]="getFileUrl(file)"></audio>
+          <a *ngIf="!isAudio(file)"
+            [href]="getFileUrl(file)"
+            [download]="file.fileName">{{ file.fileName }}</a>
         </div>
       </div>
     </div>
@@ -32,8 +31,13 @@
 
   <input type="file" multiple (change)="onFileSelected($event)" />
   <ul *ngIf="attachments.length">
-    <li *ngFor="let file of attachments">{{ file.fileName }}</li>
+    <li *ngFor="let file of attachments">
+      <audio *ngIf="isAudio(file)" controls [src]="getFileUrl(file)"></audio>
+      <span *ngIf="!isAudio(file)">{{ file.fileName }}</span>
+    </li>
   </ul>
+  <button *ngIf="!isRecording" (click)="startRecording()">Record voice</button>
+  <button *ngIf="isRecording" (click)="stopRecording()">Stop</button>
 
   <input [(ngModel)]="newMessage" placeholder="Type a message..." />
   <button (click)="send()">Send</button>

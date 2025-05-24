@@ -23,6 +23,9 @@ export class AppComponent implements OnInit {
   messages: ChatMessage[] = [];
   newMessage = '';
   attachments: ChatAttachment[] = [];
+  isRecording = false;
+  private mediaRecorder?: MediaRecorder;
+  private recordedChunks: BlobPart[] = [];
 
   constructor(private chat: ChatService) { }
 
@@ -90,6 +93,69 @@ export class AppComponent implements OnInit {
     });
   }
 
+  private readBlobAsBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async startRecording(): Promise<void> {
+    if (this.isRecording) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.recordedChunks = [];
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) this.recordedChunks.push(e.data);
+      };
+      this.mediaRecorder.onstop = async () => {
+        const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+        const base64 = await this.readBlobAsBase64(blob);
+        const attachment: ChatAttachment = {
+          fileName: `voice-${Date.now()}.webm`,
+          data: base64
+        };
+        this.attachments.push(attachment);
+        this.mediaRecorder = undefined;
+        this.recordedChunks = [];
+      };
+      this.mediaRecorder.start();
+      this.isRecording = true;
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  }
+
+  stopRecording(): void {
+    if (!this.mediaRecorder || !this.isRecording) return;
+    this.mediaRecorder.stop();
+    this.isRecording = false;
+  }
+
+  isAudio(file: ChatAttachment): boolean {
+    return /\.(mp3|wav|ogg|m4a|webm)$/i.test(file.fileName);
+  }
+
+  getFileUrl(file: ChatAttachment): string {
+    const ext = file.fileName.split('.').pop()?.toLowerCase() || '';
+    const mimeMap: Record<string, string> = {
+      mp3: 'audio/mpeg',
+      wav: 'audio/wav',
+      ogg: 'audio/ogg',
+      m4a: 'audio/mp4',
+      webm: 'audio/webm'
+    };
+    const mime = mimeMap[ext] || 'application/octet-stream';
+    return `data:${mime};base64,${file.data}`;
+  }
+
   loadMessages(): void {
     if (!this.conversationId) return;
     this.chat.getMessages(this.conversationId)
@@ -97,7 +163,8 @@ export class AppComponent implements OnInit {
   }
 
   send(): void {
-    if (!this.conversationId || !this.newMessage.trim()) return;
+    if (!this.conversationId) return;
+    if (!this.newMessage.trim() && this.attachments.length === 0) return;
     this.chat
       .sendMessageViaHub(
         this.conversationId,
