@@ -1,8 +1,18 @@
 <h1>{{ title }}</h1>
-<div class="chat-window">
-  <div *ngFor="let message of messages">
-    <strong>{{ message.sender }}:</strong> {{ message.content }}
-  </div>
+
+<div *ngIf="!conversationId">
+  <input [(ngModel)]="user" placeholder="Your username" />
+  <input [(ngModel)]="recipient" placeholder="Recipient" />
+  <input [(ngModel)]="topic" placeholder="Topic" />
+  <button (click)="startConversation()">Start</button>
 </div>
-<input [(ngModel)]="newMessage" placeholder="Type a message..." />
-<button (click)="send()">Send</button>
+
+<div *ngIf="conversationId">
+  <div class="chat-window">
+    <div *ngFor="let message of messages">
+      <strong>{{ message.sender }}:</strong> {{ message.content }}
+    </div>
+  </div>
+  <input [(ngModel)]="newMessage" placeholder="Type a message..." />
+  <button (click)="send()">Send</button>
+</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ChatService, ChatMessage } from './chat.service';
 
 @Component({
@@ -6,18 +6,19 @@ import { ChatService, ChatMessage } from './chat.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'Chat Frontend';
   conversationId: string | null = null;
-  user = 'alice';
-  recipient = 'bob';
-  topic = 'general';
+  user = '';
+  recipient = '';
+  topic = '';
   messages: ChatMessage[] = [];
   newMessage = '';
 
   constructor(private chat: ChatService) {}
 
-  ngOnInit(): void {
+  startConversation(): void {
+    if (!this.user.trim() || !this.recipient.trim() || !this.topic.trim()) return;
     this.chat.startConversation(this.user, this.recipient, this.topic)
       .subscribe(id => {
         this.conversationId = id;
