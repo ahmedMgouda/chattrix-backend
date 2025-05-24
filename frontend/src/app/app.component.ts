@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { ChatService, ChatMessage, ChatAttachment } from './chat.service';
+import { ChatService, ChatMessage, ChatAttachment, ChatConversation } from './chat.service';
+import { USERS, AppUser } from './users';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -16,10 +17,12 @@ import { FormsModule } from '@angular/forms';
 export class AppComponent implements OnInit {
   title = 'Chat Frontend';
   conversationId: string | null = null;
-  user = '';
+  currentUser: AppUser | null = null;
+  username = '';
   recipient = '';
   topic = '';
   joinId = '';
+  conversations: ChatConversation[] = [];
   messages: ChatMessage[] = [];
   newMessage = '';
   attachments: ChatAttachment[] = [];
@@ -30,26 +33,38 @@ export class AppComponent implements OnInit {
   constructor(private chat: ChatService) { }
 
   async ngOnInit(): Promise<void> {
-    console.log(`SignalR connected`);
-    await this.chat.connect();
-    this.chat.onMessage((convId, sender, content) => {
+    this.chat.onMessage((convId, sender, content, files, timestamp) => {
       if (this.conversationId === convId) {
         this.loadMessages();
       }
     });
   }
 
+  login(): void {
+    const u = USERS.find(x => x.name === this.username.trim());
+    if (!u) return;
+    this.currentUser = u;
+    this.chat.connect(u.id).then(() => this.loadConversations());
+  }
+
+  loadConversations(): void {
+    if (!this.currentUser) return;
+    this.chat.getConversations(this.currentUser.id)
+      .subscribe(cs => this.conversations = cs);
+  }
+
   startConversation(): void {
-    if (!this.user.trim() || !this.recipient.trim() || !this.topic.trim()) return;
-    this.chat.startConversation(this.user, this.recipient, this.topic)
+    if (!this.currentUser || !this.recipient.trim() || !this.topic.trim()) return;
+    this.chat.startConversation(this.currentUser.id, this.recipient, this.topic)
       .subscribe(async id => {
         this.conversationId = id;
         await this.chat.joinConversation(id);
         this.loadMessages();
+        this.loadConversations();
       });
   }
 
-    async joinConversation(): Promise<void> {
+  async joinConversation(): Promise<void> {
     const id = this.joinId.trim();
     this.joinId = '';
     try {
@@ -58,9 +73,15 @@ export class AppComponent implements OnInit {
       this.conversationId = id;
       console.log('[Client] Successfully joined the conversation.');
       this.loadMessages();
+      this.loadConversations();
     } catch (error) {
       console.error('[Client] Failed to join conversation:', error);
     }
+  }
+
+  openConversation(conv: ChatConversation): void {
+    this.conversationId = conv.id;
+    this.chat.joinConversation(conv.id).then(() => this.loadMessages());
   }
 
   test():void{
@@ -168,7 +189,7 @@ export class AppComponent implements OnInit {
     this.chat
       .sendMessageViaHub(
         this.conversationId,
-        this.user,
+        this.currentUser?.id ?? '',
         this.newMessage,
         this.attachments.length ? [...this.attachments] : undefined
       )

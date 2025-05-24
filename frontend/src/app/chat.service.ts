@@ -22,16 +22,23 @@ export interface ChatMessage {
   isEdited: boolean;
 }
 
+export interface ChatConversation {
+  id: string;
+  user1: string;
+  user2: string;
+  topic: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private baseUrl = `${environment.apiUrl}/chat`;
   private hubUrl = environment.apiUrl.replace('/api', '') + '/hubs/chat';
   private connection?: HubConnection;
 
-  async connect(): Promise<void> {
+  async connect(userId: string): Promise<void> {
     if (!this.connection) {
       this.connection = new HubConnectionBuilder()
-        .withUrl(this.hubUrl)
+        .withUrl(`${this.hubUrl}?user=${encodeURIComponent(userId)}`)
         .withAutomaticReconnect()
         .build();
     }
@@ -40,7 +47,7 @@ export class ChatService {
     }
   }
 
-  onMessage(handler: (conversationId: string, sender: string, content: string, files: ChatAttachment[] | null) => void): void {
+  onMessage(handler: (conversationId: string, sender: string, content: string, files: ChatAttachment[] | null, timestamp: string) => void): void {
     this.connection?.on('ReceiveMessage', handler);
   }
 
@@ -58,6 +65,10 @@ export class ChatService {
     return this.http.post<string>(`${this.baseUrl}/start`, null, {
       params: { user1, user2, topic }
     });
+  }
+
+  getConversations(user: string): Observable<ChatConversation[]> {
+    return this.http.get<ChatConversation[]>(`${this.baseUrl}/user/${user}`);
   }
 
   getMessages(conversationId: string): Observable<ChatMessage[]> {

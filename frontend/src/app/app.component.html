@@ -1,18 +1,29 @@
 <h1>{{ title }}</h1>
 
-<div *ngIf="!conversationId">
-  <input [(ngModel)]="user" placeholder="Your username" />
+<div *ngIf="!currentUser">
+  <input [(ngModel)]="username" placeholder="Username" />
+  <button (click)="login()">Login</button>
+</div>
+
+<div *ngIf="currentUser">
+  <div class="sidebar">
+    <div *ngFor="let c of conversations" (click)="openConversation(c)">
+      {{ c.topic }}
+    </div>
+  </div>
+
   <div>
     <input [(ngModel)]="recipient" placeholder="Recipient" />
     <input [(ngModel)]="topic" placeholder="Topic" />
     <button (click)="startConversation()">Start</button>
   </div>
-</div>
 
   <div>
     <input [(ngModel)]="joinId" placeholder="Conversation ID" />
     <button (click)="joinConversation()">Join</button>
   </div>
+
+</div>
 
 <div *ngIf="conversationId">
   <div class="chat-window">

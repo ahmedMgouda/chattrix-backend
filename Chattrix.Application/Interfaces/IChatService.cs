@@ -14,5 +14,6 @@ public interface IChatService
     Task<IReadOnlyList<ChatMessage>> GetMessagesAsync(Guid conversationId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ChatMessage>> SearchAsync(Guid conversationId, string term, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ChatAttachment>> GetFilesAsync(Guid conversationId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ChatConversation>> GetConversationsAsync(string user, CancellationToken cancellationToken = default);
 }
 

@@ -43,4 +43,12 @@ public class DbConversationRepository : IConversationRepository
             .Distinct()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<ChatConversation>> GetForUserAsync(string user, CancellationToken cancellationToken = default)
+    {
+        return await _context.Conversations.AsNoTracking()
+            .Where(c => c.User1 == user || c.User2 == user)
+            .Select(c => c.ToModel())
+            .ToListAsync(cancellationToken);
+    }
 }
