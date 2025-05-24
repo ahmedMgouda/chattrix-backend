@@ -2,9 +2,15 @@
 
 <div *ngIf="!conversationId">
   <input [(ngModel)]="user" placeholder="Your username" />
-  <input [(ngModel)]="recipient" placeholder="Recipient" />
-  <input [(ngModel)]="topic" placeholder="Topic" />
-  <button (click)="startConversation()">Start</button>
+  <div>
+    <input [(ngModel)]="recipient" placeholder="Recipient" />
+    <input [(ngModel)]="topic" placeholder="Topic" />
+    <button (click)="startConversation()">Start</button>
+  </div>
+  <div>
+    <input [(ngModel)]="joinId" placeholder="Conversation ID" />
+    <button (click)="joinConversation()">Join</button>
+  </div>
 </div>
 
 <div *ngIf="conversationId">
