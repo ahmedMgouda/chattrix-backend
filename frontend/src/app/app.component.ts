@@ -23,9 +23,11 @@ export class AppComponent implements OnInit {
   messages: ChatMessage[] = [];
   newMessage = '';
 
-  constructor(private chat: ChatService) {}
+  constructor(private chat: ChatService) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    console.log(`SignalR connected`);
+    await this.chat.connect();
     this.chat.onMessage((convId, sender, content) => {
       if (this.conversationId === convId) {
         this.loadMessages();
@@ -38,18 +40,28 @@ export class AppComponent implements OnInit {
     this.chat.startConversation(this.user, this.recipient, this.topic)
       .subscribe(async id => {
         this.conversationId = id;
-        await this.chat.connect();
         await this.chat.joinConversation(id);
         this.loadMessages();
       });
   }
 
-  joinConversation(): void {
-    if (!this.user.trim() || !this.joinId.trim()) return;
-    this.conversationId = this.joinId;
+    async joinConversation(): Promise<void> {
+    const id = this.joinId.trim();
     this.joinId = '';
-    this.chat.connect().then(() => this.chat.joinConversation(this.conversationId!));
-    this.loadMessages();
+    try {
+      console.log(`[Client] Attempting to join conversation: ${id}`);
+      await this.chat.joinConversation(id);
+      this.conversationId = id;
+      console.log('[Client] Successfully joined the conversation.');
+      this.loadMessages();
+    } catch (error) {
+      console.error('[Client] Failed to join conversation:', error);
+    }
+  }
+
+  test():void{
+    console.log('Test function called');
+    // You can add any test logic here
   }
 
   loadMessages(): void {

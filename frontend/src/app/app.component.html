@@ -7,11 +7,12 @@
     <input [(ngModel)]="topic" placeholder="Topic" />
     <button (click)="startConversation()">Start</button>
   </div>
+</div>
+
   <div>
     <input [(ngModel)]="joinId" placeholder="Conversation ID" />
     <button (click)="joinConversation()">Join</button>
   </div>
-</div>
 
 <div *ngIf="conversationId">
   <div class="chat-window">
