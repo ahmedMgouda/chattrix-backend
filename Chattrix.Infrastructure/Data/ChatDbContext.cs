@@ -89,7 +89,7 @@ public class UserProfileEntity
     {
         var profile = new UserProfile(User) { Status = Status };
         var blocked = JsonSerializer.Deserialize<HashSet<string>>(BlockedUsersJson) ?? new HashSet<string>();
-        foreach (var b in blocked) profile.BlockedUsers.Add(b);
+        foreach (var b in blocked) profile.BlockedUserIds.Add(b);
         return profile;
     }
 
@@ -99,7 +99,7 @@ public class UserProfileEntity
         {
             User = model.User,
             Status = model.Status,
-            BlockedUsersJson = JsonSerializer.Serialize(model.BlockedUsers)
+            BlockedUsersJson = JsonSerializer.Serialize(model.BlockedUserIds)
         };
     }
 }
