@@ -39,6 +39,13 @@ public class ChatService : IChatService
 
     public async Task<Guid> StartConversationAsync(string user1, string user2, string topic, CancellationToken cancellationToken = default)
     {
+        var existing = await _conversations.GetByUsersAsync(user1, user2, cancellationToken);
+        var match = existing.FirstOrDefault(c => c.Topic == topic);
+        if (match is not null)
+        {
+            return match.Id;
+        }
+
         var conversation = new ChatConversation(Guid.NewGuid(), user1, user2, topic);
         await _conversations.AddAsync(conversation, cancellationToken);
         return conversation.Id;
@@ -131,5 +138,10 @@ public class ChatService : IChatService
     {
         var messages = await _messages.GetByConversationAsync(conversationId, cancellationToken);
         return messages.SelectMany(m => m.Files ?? Array.Empty<ChatAttachment>()).ToList();
+    }
+
+    public Task<IReadOnlyList<ChatConversation>> GetConversationsAsync(string user, CancellationToken cancellationToken = default)
+    {
+        return _conversations.GetForUserAsync(user, cancellationToken);
     }
 }

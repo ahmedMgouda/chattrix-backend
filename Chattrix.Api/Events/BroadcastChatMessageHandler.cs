@@ -17,6 +17,6 @@ public class BroadcastChatMessageHandler : IDomainEventHandler<ChatMessageSentEv
     {
         var msg = domainEvent.Message;
         return _hub.Clients.Group(msg.ConversationId.ToString())
-            .SendAsync("ReceiveMessage", msg.ConversationId, msg.Sender, msg.Content, msg.Files, cancellationToken);
+            .SendAsync("ReceiveMessage", msg.ConversationId, msg.Sender, msg.Content, msg.Files, msg.Timestamp, cancellationToken);
     }
 }

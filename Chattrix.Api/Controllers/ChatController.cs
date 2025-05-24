@@ -22,6 +22,12 @@ public class ChatController : ControllerBase
         return Ok(id);
     }
 
+    [HttpGet("user/{user}")]
+    public Task<IReadOnlyList<ChatConversation>> List(string user, CancellationToken cancellationToken)
+    {
+        return _chatService.GetConversationsAsync(user, cancellationToken);
+    }
+
     [HttpGet("{conversationId}")]
     public Task<IReadOnlyList<ChatMessage>> Get(Guid conversationId, CancellationToken cancellationToken)
     {
