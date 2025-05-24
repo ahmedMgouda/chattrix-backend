@@ -1,6 +1,7 @@
 using Chattrix.Application.Interfaces;
 using Chattrix.Core.Interfaces;
 using Chattrix.Core.Models;
+using Chattrix.Core.Events;
 using Hangfire;
 using System.Linq;
 using System.IO;
@@ -79,11 +80,7 @@ public class ChatService : IChatService
         var message = new ChatMessage(Guid.NewGuid(), conversationId, sender, recipient, content, DateTime.UtcNow, files);
         await _messages.AddAsync(message, cancellationToken);
 
-        var status = await _users.GetStatusAsync(recipient, cancellationToken);
-        if (status == UserStatus.Offline)
-        {
-            _jobs.Enqueue<IEmailService>(e => e.SendEmailAsync(recipient, $"New message from {sender}", content, CancellationToken.None));
-        }
+        await DomainEvents.RaiseAsync(new ChatMessageSentEvent(message), cancellationToken);
     }
 
     public async Task MarkDeliveredAsync(Guid id, CancellationToken cancellationToken = default)
