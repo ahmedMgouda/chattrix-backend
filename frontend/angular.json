@@ -5,6 +5,7 @@
   "projects": {
     "chat-frontend": {
       "projectType": "application",
+      "root": "",
       "sourceRoot": "src",
       "prefix": "app",
       "architect": {
