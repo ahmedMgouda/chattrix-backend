@@ -9,7 +9,7 @@ namespace Chattrix.Core.Models;
 /// <param name="Recipient">Receiving user.</param>
 /// <param name="Content">Text content.</param>
 /// <param name="Timestamp">Creation time.</param>
-/// <param name="Files">Optional file attachments.</param>
+/// <param name="Files">Optional file attachments including voice messages.</param>
 /// <param name="IsDelivered">Whether the message has been delivered.</param>
 /// <param name="IsRead">Whether the message has been read by the recipient.</param>
 /// <param name="IsEdited">Indicates whether the message has been edited.</param>

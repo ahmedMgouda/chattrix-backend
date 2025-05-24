@@ -15,9 +15,11 @@ public class ChatService : IChatService
     private readonly IEmailService _emails;
     private readonly IBackgroundJobClient _jobs;
     private const int MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB default limit
+    // Allowed file types for attachments, including audio for voice messages
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".txt"
+        ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".txt",
+        ".mp3", ".wav", ".ogg", ".m4a"
     };
 
     public ChatService(
