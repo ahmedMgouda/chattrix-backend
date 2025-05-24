@@ -1,10 +1,17 @@
 import { Component } from '@angular/core';
 import { ChatService, ChatMessage } from './chat.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
+  standalone: true,
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  imports: [
+    CommonModule,    // Needed for *ngIf, *ngFor
+    FormsModule      // Needed for [(ngModel)]
+  ]
 })
 export class AppComponent {
   title = 'Chat Frontend';
