@@ -2,6 +2,8 @@ using Chattrix.Application;
 using Chattrix.Infrastructure;
 using Chattrix.Api.Hubs;
 using Serilog;
+using Hangfire;
+using Hangfire.MemoryStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,8 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddHangfire(config => config.UseMemoryStorage());
+builder.Services.AddHangfireServer();
 
 builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
@@ -28,6 +32,7 @@ app.UseHttpsRedirection();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<UserHub>("/hubs/user");
+app.UseHangfireDashboard();
 
 app.Run();
 
