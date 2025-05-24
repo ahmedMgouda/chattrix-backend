@@ -29,20 +29,20 @@ public class UserService : IUserService
     public async Task BlockAsync(string user, string blockedUser, CancellationToken cancellationToken = default)
     {
         var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
-        profile.BlockedUsers.Add(blockedUser);
+        profile.BlockedUserIds.Add(blockedUser);
         await _repository.UpdateAsync(profile, cancellationToken);
     }
 
     public async Task UnblockAsync(string user, string blockedUser, CancellationToken cancellationToken = default)
     {
         var profile = await _repository.GetOrCreateAsync(user, cancellationToken);
-        profile.BlockedUsers.Remove(blockedUser);
+        profile.BlockedUserIds.Remove(blockedUser);
         await _repository.UpdateAsync(profile, cancellationToken);
     }
 
     public async Task<bool> IsBlockedAsync(string user, string otherUser, CancellationToken cancellationToken = default)
     {
         var profile = await _repository.GetOrCreateAsync(otherUser, cancellationToken);
-        return profile.BlockedUsers.Contains(user);
+        return profile.BlockedUserIds.Contains(user);
     }
 }
